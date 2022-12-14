@@ -3,8 +3,8 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex h-screen bg-black">
-      <div className="w-screen h-screen flex flex-col justify-center items-center">
+    <div className="flex bg-black">
+      <div className="w-screen flex flex-col justify-center items-center">
         <Image
           width={512}
           height={512}

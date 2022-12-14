@@ -1,16 +1,24 @@
-import { NextResponse } from "next/server";
-import { withAuth } from "next-auth/middleware";
+import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
+import { Role } from "@prisma/client";
 
-export default withAuth(function middleware(req) {
-  // Redirect if they don't have the appropriate role
-  if (
-    req.nextUrl.pathname.startsWith("/protected") &&
-    req.nextauth.token?.role !== "ADMIN"
-  ) {
+export default async function middleware(req: NextRequest) {
+  // Get the pathname of the request (e.g. /, /protected)
+  const path = req.nextUrl.pathname;
+
+  const session = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  const rol = session?.role
+
+  if (!session && path === "/protected") {
+    return NextResponse.redirect(new URL("/login", req.url));
+  } else if (session && (path === "/login" || path === "/register")) {
+    return NextResponse.redirect(new URL("/", req.url));
+  } else if (session && rol !==Role.ADMIN && path === "/protected") {
     return NextResponse.redirect(new URL("/", req.url));
   }
-});
-
-export const config = {
-  matcher: ["/protected/:path*", "/nonAdminButSecure/:path*"],
-};
+  return NextResponse.next();
+}
